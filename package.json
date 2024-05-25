@@ -1,0 +1,18 @@
+{
+  "name": "discord-sql-bot",
+  "version": "1.0.0",
+  "description": "Account checker for Dragonite's DB",
+  "main": "account-checker.js",
+  "scripts": {
+    "start": "node account-checker.js"
+  },
+  "keywords": [],
+  "author": "LucianoNeo",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^12.5.3",
+    "dotenv": "^16.4.5",
+    "mysql2": "^3.9.7",
+    "nvm": "^0.0.4"
+  }
+}
