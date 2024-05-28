@@ -183,7 +183,7 @@ const fetchDisabledAccounts = () => {
         .setTitle("DISABLED ACCOUNTS")
         .setColor("#ff0000")
         .setDescription(
-          `There are ${disabledAccountsCount} accounts disabled in the last 4 days.`
+          `There are ${disabledAccountsCount} accounts disabled.`
         )
         .setTimestamp();
 
