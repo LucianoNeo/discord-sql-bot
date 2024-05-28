@@ -58,8 +58,8 @@ client.once("ready", () => {
       }
 
       // Perform database query
-      const query = `SELECT COUNT(*) FROM account WHERE refresh_token = ''`; // Adjust the query as necessary
-      connection.query(query, (error, results) => {
+      const noTokenQuery = `SELECT COUNT(*) FROM account WHERE refresh_token = ''`; // Adjust the query as necessary
+      connection.query(noTokenQuery, (error, results) => {
         if (error) {
           logMessage(`Error executing the query: ${error}`);
           connection.end(); // Close the connection even in case of error
@@ -76,9 +76,9 @@ client.once("ready", () => {
         // Check for results
         if (count > 0) {
           // Format results for sending
-          embed.setDescription(`There are ${count} accounts without token ❗`);
+          embed.setDescription(`There are ${count} accounts without token 🔴`);
         } else {
-          embed.setDescription("No accounts without token. 😎");
+          embed.setDescription("No accounts without token. 🟢");
         }
 
         // Send message to the specific channel
