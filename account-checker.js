@@ -114,7 +114,7 @@ client.once("ready", () => {
           } else {
             embed.setDescription("No accounts without token. 🟢\n");
           }
-          if (readyToUseAccs > 5) {
+          if (readyToUseAccsCount > 5) {
             embed.addField(
               "🟢 Ready to Use Accounts",
               `${readyToUseAccsCount} accounts are ready to use`
