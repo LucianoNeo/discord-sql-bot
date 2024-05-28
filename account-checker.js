@@ -155,6 +155,7 @@ client.once("ready", () => {
   setInterval(sendMessage, process.env.CHECK_INTERVAL * 60 * 1000);
 });
 
+// Function to fetch disabled accounts in the last 4 days
 const fetchDisabledAccounts = () => {
   const connection = connectToDatabase();
 
@@ -173,7 +174,7 @@ const fetchDisabledAccounts = () => {
     connection.query(disabledAccountsQuery, (error, results) => {
       if (error) {
         logMessage(`Error executing the disabledAccountsQuery: ${error}`);
-        connection.end(); 
+        connection.end(); // Close the connection even in case of error
         return;
       }
 
@@ -182,7 +183,7 @@ const fetchDisabledAccounts = () => {
         .setTitle("DISABLED ACCOUNTS")
         .setColor("#ff0000")
         .setDescription(
-          `There are ${disabledAccountsCount} accounts disabled.`
+          `There are ${disabledAccountsCount} accounts disabled in the last 4 days.`
         )
         .setTimestamp();
 
@@ -192,15 +193,115 @@ const fetchDisabledAccounts = () => {
           .send(embed)
           .then(() => {
             logMessage("Disabled accounts query results sent successfully.");
-            connection.end(); 
+            connection.end(); // Close the connection after success
           })
           .catch((error) => {
             logMessage(`Error sending the disabled accounts query results: ${error}`);
-            connection.end(); 
+            connection.end(); // Close the connection even in case of error
           });
       } else {
         logMessage("Specified channel not found.");
-        connection.end(); 
+        connection.end(); // Close the connection if the channel is not found
+      }
+    });
+  });
+};
+
+// Function to fetch banned accounts
+const fetchBannedAccounts = () => {
+  const connection = connectToDatabase();
+
+  connection.connect((err) => {
+    if (err) {
+      logMessage(`Error connecting to the database: ${err}`);
+      return;
+    }
+
+    const bannedAccountsQuery = `
+      SELECT *
+      FROM account
+      WHERE banned = 1
+    `;
+
+    connection.query(bannedAccountsQuery, (error, results) => {
+      if (error) {
+        logMessage(`Error executing the bannedAccountsQuery: ${error}`);
+        connection.end(); // Close the connection even in case of error
+        return;
+      }
+
+      const bannedAccountsCount = results.length;
+      const embed = new MessageEmbed()
+        .setTitle("BANNED ACCOUNTS")
+        .setColor("#ff0000")
+        .setDescription(`There are ${bannedAccountsCount} banned accounts.`)
+        .setTimestamp();
+
+      const channel = client.channels.cache.get(process.env.CHANNEL_ID);
+      if (channel) {
+        channel
+          .send(embed)
+          .then(() => {
+            logMessage("Banned accounts query results sent successfully.");
+            connection.end(); // Close the connection after success
+          })
+          .catch((error) => {
+            logMessage(`Error sending the banned accounts query results: ${error}`);
+            connection.end(); // Close the connection even in case of error
+          });
+      } else {
+        logMessage("Specified channel not found.");
+        connection.end(); // Close the connection if the channel is not found
+      }
+    });
+  });
+};
+
+// Function to fetch invalid accounts
+const fetchInvalidAccounts = () => {
+  const connection = connectToDatabase();
+
+  connection.connect((err) => {
+    if (err) {
+      logMessage(`Error connecting to the database: ${err}`);
+      return;
+    }
+
+    const invalidAccountsQuery = `
+      SELECT *
+      FROM account
+      WHERE invalid = 1
+    `;
+
+    connection.query(invalidAccountsQuery, (error, results) => {
+      if (error) {
+        logMessage(`Error executing the invalidAccountsQuery: ${error}`);
+        connection.end(); // Close the connection even in case of error
+        return;
+      }
+
+      const invalidAccountsCount = results.length;
+      const embed = new MessageEmbed()
+        .setTitle("INVALID ACCOUNTS")
+        .setColor("#ff0000")
+        .setDescription(`There are ${invalidAccountsCount} invalid accounts.`)
+        .setTimestamp();
+
+      const channel = client.channels.cache.get(process.env.CHANNEL_ID);
+      if (channel) {
+        channel
+          .send(embed)
+          .then(() => {
+            logMessage("Invalid accounts query results sent successfully.");
+            connection.end(); // Close the connection after success
+          })
+          .catch((error) => {
+            logMessage(`Error sending the invalid accounts query results: ${error}`);
+            connection.end(); // Close the connection even in case of error
+          });
+      } else {
+        logMessage("Specified channel not found.");
+        connection.end(); // Close the connection if the channel is not found
       }
     });
   });
@@ -209,6 +310,10 @@ const fetchDisabledAccounts = () => {
 client.on("message", (message) => {
   if (message.content === "$disabled") {
     fetchDisabledAccounts();
+  } else if (message.content === "$banned") {
+    fetchBannedAccounts();
+  } else if (message.content === "$invalid") {
+    fetchInvalidAccounts();
   }
 });
 
