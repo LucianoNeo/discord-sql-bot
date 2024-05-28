@@ -155,4 +155,61 @@ client.once("ready", () => {
   setInterval(sendMessage, process.env.CHECK_INTERVAL * 60 * 1000);
 });
 
+const fetchDisabledAccounts = () => {
+  const connection = connectToDatabase();
+
+  connection.connect((err) => {
+    if (err) {
+      logMessage(`Error connecting to the database: ${err}`);
+      return;
+    }
+
+    const disabledAccountsQuery = `
+      SELECT *
+      FROM account
+      WHERE last_disabled > UNIX_TIMESTAMP() - 345600
+    `;
+
+    connection.query(disabledAccountsQuery, (error, results) => {
+      if (error) {
+        logMessage(`Error executing the disabledAccountsQuery: ${error}`);
+        connection.end(); 
+        return;
+      }
+
+      const disabledAccountsCount = results.length;
+      const embed = new MessageEmbed()
+        .setTitle("DISABLED ACCOUNTS")
+        .setColor("#ff0000")
+        .setDescription(
+          `There are ${disabledAccountsCount} accounts disabled.`
+        )
+        .setTimestamp();
+
+      const channel = client.channels.cache.get(process.env.CHANNEL_ID);
+      if (channel) {
+        channel
+          .send(embed)
+          .then(() => {
+            logMessage("Disabled accounts query results sent successfully.");
+            connection.end(); 
+          })
+          .catch((error) => {
+            logMessage(`Error sending the disabled accounts query results: ${error}`);
+            connection.end(); 
+          });
+      } else {
+        logMessage("Specified channel not found.");
+        connection.end(); 
+      }
+    });
+  });
+};
+
+client.on("message", (message) => {
+  if (message.content === "$disabled") {
+    fetchDisabledAccounts();
+  }
+});
+
 client.login(process.env.DISCORD_TOKEN);
