@@ -114,12 +114,17 @@ client.once("ready", () => {
           } else {
             embed.setDescription("No accounts without token. 🟢\n");
           }
-
-          // Add readyToUseAccs
-          embed.addField(
-            "Ready to Use Accounts",
-            `${readyToUseAccsCount} accounts are ready to use 🟢`
-          );
+          if (readyToUseAccs > 5) {
+            embed.addField(
+              "🟢 Ready to Use Accounts",
+              `${readyToUseAccsCount} accounts are ready to use`
+            );
+          } else {
+            embed.addField(
+              "🔴 Ready to Use Accounts (WARNING)",
+              `${readyToUseAccsCount} accounts are ready to use`
+            );
+          }
 
           // Send message to the specific channel
           const channel = client.channels.cache.get(process.env.CHANNEL_ID);
