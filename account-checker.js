@@ -109,10 +109,10 @@ client.once("ready", () => {
           // Check for noTokensAccs
           if (noTokensAccsCount > 0) {
             embed.setDescription(
-              `There are ${noTokensAccsCount} accounts without token 🔴\n`
+              `🔴 There are ${noTokensAccsCount} accounts without token\n`
             );
           } else {
-            embed.setDescription("No accounts without token. 🟢\n");
+            embed.setDescription("🟢 No accounts without token.\n");
           }
           if (readyToUseAccsCount > 5) {
             embed.addField(
