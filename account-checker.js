@@ -44,109 +44,109 @@ const logMessage = (message) => {
   fs.appendFileSync(LOG_FILE_PATH, log);
 };
 
-client.once("ready", () => {
-  logMessage("Bot is online!");
+const sendMessage = () => {
+  const connection = connectToDatabase();
 
-  const sendMessage = () => {
-    const connection = connectToDatabase();
+  connection.connect((err) => {
+    if (err) {
+      logMessage(`Error connecting to the database: ${err}`);
+      setTimeout(sendMessage, 30000); // Try again in 30 seconds
+      return;
+    }
 
-    connection.connect((err) => {
-      if (err) {
-        logMessage(`Error connecting to the database: ${err}`);
-        setTimeout(sendMessage, 30000); // Try again in 30 seconds
+    // Perform database queries
+    const noTokenQuery = `SELECT COUNT(*) FROM account WHERE refresh_token = ''`; // Adjust the query as necessary
+    const readyToUseQuery = `SELECT
+                                SUM(
+                                    CASE
+                                    WHEN
+                                        not banned
+                                        AND not invalid
+                                        AND warn_expiration < UNIX_TIMESTAMP()
+                                        AND not suspended
+                                        AND (
+                                            (
+                                                consecutive_disable_count <= 1
+                                                AND UNIX_TIMESTAMP() - 345600 > coalesce(last_disabled, 0)))
+                                        AND level >= 30
+                                        AND refresh_token <> ''
+                                    THEN
+                                        1
+                                    ELSE
+                                        0
+                                    END
+                                ) AS Total
+                            FROM
+                                account;`;
+
+    connection.query(noTokenQuery, (error, noTokensAccs) => {
+      if (error) {
+        logMessage(`Error executing the noTokenQuery: ${error}`);
+        connection.end(); // Close the connection even in case of error
         return;
       }
 
-      // Perform database queries
-      const noTokenQuery = `SELECT COUNT(*) FROM account WHERE refresh_token = ''`; // Adjust the query as necessary
-      const readyToUseQuery = `SELECT
-                                  SUM(
-                                      CASE
-                                      WHEN
-                                          not banned
-                                          AND not invalid
-                                          AND warn_expiration < UNIX_TIMESTAMP()
-                                          AND not suspended
-                                          AND (
-                                              (
-                                                  consecutive_disable_count <= 1
-                                                  AND UNIX_TIMESTAMP() - 345600 > coalesce(last_disabled, 0)))
-                                          AND level >= 30
-                                          AND refresh_token <> ''
-                                      THEN
-                                          1
-                                      ELSE
-                                          0
-                                      END
-                                  ) AS Total
-                              FROM
-                                  account;`;
+      const noTokensAccsCount = noTokensAccs[0]["COUNT(*)"];
 
-      connection.query(noTokenQuery, (error, noTokensAccs) => {
+      connection.query(readyToUseQuery, (error, readyToUseAccs) => {
         if (error) {
-          logMessage(`Error executing the noTokenQuery: ${error}`);
+          logMessage(`Error executing the readyToUseQuery: ${error}`);
           connection.end(); // Close the connection even in case of error
           return;
         }
 
-        const noTokensAccsCount = noTokensAccs[0]["COUNT(*)"];
+        const readyToUseAccsCount = readyToUseAccs[0]["Total"];
 
-        connection.query(readyToUseQuery, (error, readyToUseAccs) => {
-          if (error) {
-            logMessage(`Error executing the readyToUseQuery: ${error}`);
-            connection.end(); // Close the connection even in case of error
-            return;
-          }
+        // Create embed for the message
+        const embed = new MessageEmbed()
+          .setTitle("ACCOUNTS CHECKER:")
+          .setColor("#0099ff")
+          .setTimestamp();
 
-          const readyToUseAccsCount = readyToUseAccs[0]["Total"];
+        // Check for noTokensAccs
+        if (noTokensAccsCount > 0) {
+          embed.setDescription(
+            `🔴 There are ${noTokensAccsCount} accounts without token\n`
+          );
+        } else {
+          embed.setDescription("🟢 No accounts without token.\n");
+        }
+        if (readyToUseAccsCount > 5) {
+          embed.addField(
+            "🟢 Ready to Use Accounts",
+            `${readyToUseAccsCount} accounts are ready to use`
+          );
+        } else {
+          embed.addField(
+            "🔴 Ready to Use Accounts (WARNING)",
+            `${readyToUseAccsCount} accounts are ready to use`
+          );
+        }
 
-          // Create embed for the message
-          const embed = new MessageEmbed()
-            .setTitle("ACCOUNTS CHECKER:")
-            .setColor("#0099ff")
-            .setTimestamp();
-
-          // Check for noTokensAccs
-          if (noTokensAccsCount > 0) {
-            embed.setDescription(
-              `🔴 There are ${noTokensAccsCount} accounts without token\n`
-            );
-          } else {
-            embed.setDescription("🟢 No accounts without token.\n");
-          }
-          if (readyToUseAccsCount > 5) {
-            embed.addField(
-              "🟢 Ready to Use Accounts",
-              `${readyToUseAccsCount} accounts are ready to use`
-            );
-          } else {
-            embed.addField(
-              "🔴 Ready to Use Accounts (WARNING)",
-              `${readyToUseAccsCount} accounts are ready to use`
-            );
-          }
-
-          // Send message to the specific channel
-          const channel = client.channels.cache.get(process.env.CHANNEL_ID);
-          if (channel) {
-            channel
-              .send(embed)
-              .then(() => {
-                logMessage("Query results sent successfully.");
-                connection.end(); // Close the connection after success
-              })
-              .catch((error) => {
-                logMessage(`Error sending the query results: ${error}`);
-                connection.end(); // Close the connection even in case of error
-              });
-          } else {
-            logMessage("Specified channel not found.");
-            connection.end(); // Close the connection if the channel is not found
-          }
-        });
+        // Send message to the specific channel
+        const channel = client.channels.cache.get(process.env.CHANNEL_ID);
+        if (channel) {
+          channel
+            .send(embed)
+            .then(() => {
+              logMessage("Query results sent successfully.");
+              connection.end(); // Close the connection after success
+            })
+            .catch((error) => {
+              logMessage(`Error sending the query results: ${error}`);
+              connection.end(); // Close the connection even in case of error
+            });
+        } else {
+          logMessage("Specified channel not found.");
+          connection.end(); // Close the connection if the channel is not found
+        }
       });
     });
-  };
+  });
+};
+
+client.once("ready", () => {
+  logMessage("Bot is online!");
 
   // Send the message immediately on startup
   sendMessage();
@@ -182,9 +182,7 @@ const fetchDisabledAccounts = () => {
       const embed = new MessageEmbed()
         .setTitle("DISABLED ACCOUNTS")
         .setColor("#ff0000")
-        .setDescription(
-          `There are ${disabledAccountsCount} accounts disabled.`
-        )
+        .setDescription(`There are ${disabledAccountsCount} accounts disabled.`)
         .setTimestamp();
 
       const channel = client.channels.cache.get(process.env.CHANNEL_ID);
@@ -196,7 +194,9 @@ const fetchDisabledAccounts = () => {
             connection.end(); // Close the connection after success
           })
           .catch((error) => {
-            logMessage(`Error sending the disabled accounts query results: ${error}`);
+            logMessage(
+              `Error sending the disabled accounts query results: ${error}`
+            );
             connection.end(); // Close the connection even in case of error
           });
       } else {
@@ -246,7 +246,9 @@ const fetchBannedAccounts = () => {
             connection.end(); // Close the connection after success
           })
           .catch((error) => {
-            logMessage(`Error sending the banned accounts query results: ${error}`);
+            logMessage(
+              `Error sending the banned accounts query results: ${error}`
+            );
             connection.end(); // Close the connection even in case of error
           });
       } else {
@@ -296,7 +298,9 @@ const fetchInvalidAccounts = () => {
             connection.end(); // Close the connection after success
           })
           .catch((error) => {
-            logMessage(`Error sending the invalid accounts query results: ${error}`);
+            logMessage(
+              `Error sending the invalid accounts query results: ${error}`
+            );
             connection.end(); // Close the connection even in case of error
           });
       } else {
@@ -317,7 +321,6 @@ client.on("message", (message) => {
   } else if (message.content === "$check") {
     sendMessage();
   }
-  
 });
 
 client.login(process.env.DISCORD_TOKEN);
