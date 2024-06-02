@@ -314,7 +314,10 @@ client.on("message", (message) => {
     fetchBannedAccounts();
   } else if (message.content === "$invalid") {
     fetchInvalidAccounts();
+  } else if (message.content === "$check") {
+    sendMessage();
   }
+  
 });
 
 client.login(process.env.DISCORD_TOKEN);
