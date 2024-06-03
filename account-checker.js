@@ -46,12 +46,12 @@ const logMessage = (message) => {
 
 let deviceStatus;
 
-devicefetch();
-
 const devicefetch = async () => {
   data = await fetch(`${process.env.ROTOM_ENDPOINT}/api/status`);
   deviceStatus = await data;
 };
+
+devicefetch();
 
 console.log(deviceStatus);
 
