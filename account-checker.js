@@ -44,6 +44,12 @@ const logMessage = (message) => {
   fs.appendFileSync(LOG_FILE_PATH, log);
 };
 
+const deviceStatus = async () => {
+  return await fetch(`${process.env.ROTOM_ENDPOINT}/api/status`);
+};
+
+console.log(deviceStatus);
+
 const sendMessage = () => {
   const connection = connectToDatabase();
 
