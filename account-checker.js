@@ -46,14 +46,48 @@ const logMessage = (message) => {
 
 let deviceStatus;
 
-const devicefetch = async () => {
-  data = await fetch(`${process.env.ROTOM_ENDPOINT}/api/status`);
-  deviceStatus = await data;
+const checkDevices = (devices) => {
+  const currentTime = Date.now();
+  const deviceOfflineMaxTime = process.env.DEVICE_OFFLINE_MAX_TIME * 60 * 1000;
+
+  devices.forEach((device) => {
+    if (currentTime - device.dateLastMessageReceived > deviceOfflineMaxTime) {
+      const embed = new MessageEmbed()
+        .setTitle("DEVICES CHECKER:")
+        .setColor("#0099ff")
+        .setTimestamp();
+
+      embed.setDescription(
+        `🔴 Alert: Device ${device.deviceId} has OFFLINE for the last ${process.env.DEVICE_OFFLINE_MAX_TIME} minutes.\n`
+      );
+
+      const channel = client.channels.cache.get(process.env.DEVICE_CHANNEL_ID);
+      if (channel) {
+        channel
+          .send(embed)
+          .then(() => {
+            logMessage("Query results sent successfully.");
+          })
+          .catch((error) => {
+            logMessage(`Error sending the query results: ${error}`);
+          });
+      } else {
+        logMessage("Specified channel not found.");
+      }
+    }
+  });
 };
 
-devicefetch();
-
-console.log(deviceStatus);
+const devicefetch = async () => {
+  try {
+    const response = await fetch(`${process.env.ROTOM_ENDPOINT}/api/status`);
+    const data = await response.json();
+    deviceStatus = data;
+    checkDevices(data.devices);
+  } catch (error) {
+    console.error("Error fetching device status:", error);
+  }
+};
 
 const sendMessage = () => {
   const connection = connectToDatabase();
@@ -159,11 +193,15 @@ const sendMessage = () => {
 client.once("ready", () => {
   logMessage("Bot is online!");
 
-  // Send the message immediately on startup
   sendMessage();
+
+  devicefetch();
 
   // Set the interval for sending messages
   setInterval(sendMessage, process.env.CHECK_INTERVAL * 60 * 1000);
+
+  // Executar a checagem a cada 15 minutos (900000 milissegundos)
+  setInterval(devicefetch, process.env.DEVICE_CHECK_INTERVAL * 60 * 1000);
 });
 
 // Function to fetch disabled accounts in the last 4 days
