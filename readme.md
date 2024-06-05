@@ -37,14 +37,20 @@ This bot periodically checks Dragonite's database for accounts without a refresh
 
 - Modify the following environment variables to the .env file:
   ```
+  DISCORD_TOKEN=your_discord_bot_token
   DB_HOST=your_mysql_host
   DB_USER=your_mysql_user
   DB_PASSWORD=your_mysql_password
   DB_NAME=your_mysql_database
   DB_PORT=your_mysql_port
-  DISCORD_TOKEN=your_discord_bot_token
   CHANNEL_ID=your_discord_channel_id
-  CHECK_INTERVAL=15
+  CHECK_INTERVAL=interval_to_receive_the_accounts_status_message
+  DEVICE_CHECK_INTERVAL=interval_to_receive_the_devices_status_message
+  DEVICE_OFFLINE_MAX_TIME=max_time_in_minutes_to_consider_device_offline
+  CHANNEL_ID=account_discordChannelId
+  DEVICE_CHANNEL_ID=device_DiscordChannelId
+  ROTOM_ENDPOINT=rotom_endpoint
+  MIN_REUSE_HOURS=169
   ```
   Replace your_mysql_host, your_mysql_user, your_mysql_password, your_mysql_database, your_mysql_port, your_discord_bot_token, and your_discord_channel_id with your actual MySQL database and Discord bot information. CHECK_INTERVAL is the interval in minutes for the bot to perform the database check.
 
