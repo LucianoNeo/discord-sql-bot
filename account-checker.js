@@ -102,7 +102,7 @@ const sendAccountStatusMessage = () => {
 
     // SQL queries to retrieve the required data
     const queryWithoutToken = `
-      SELECT SUM(CASE WHEN refresh_token = '' THEN 1 ELSE 0 END) AS without_token FROM account;
+      SELECT SUM(CASE WHEN refresh_token = '' AND auth_banned = 0 THEN 1 ELSE 0 END) AS without_token FROM account;
     `;
     const queryWithToken = `
       SELECT SUM(CASE WHEN refresh_token != '' THEN 1 ELSE 0 END) AS with_token FROM account;
@@ -335,12 +335,12 @@ const sendAccountStatusMessage = () => {
 
                                               // Add fields to the embed with accurate values
                                               embed.addField(
-                                                "🔴 Accounts without Token",
+                                                "🔴 Valid Accounts without Token",
                                                 without_token.toString(),
                                                 true
                                               );
                                               embed.addField(
-                                                "🟢 Accounts with Token",
+                                                "🟢 Valid Accounts with Token",
                                                 with_token.toString(),
                                                 true
                                               );
