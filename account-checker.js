@@ -448,63 +448,12 @@ client.once("ready", () => {
   devicefetch();
 
   // Set the interval for sending account messages
-  setInterval(sendMessage, process.env.CHECK_INTERVAL * 60 * 1000);
+  setInterval(sendAccountStatusMessage, process.env.CHECK_INTERVAL * 60 * 1000);
 
   // Set the interval for sending devices messages
   setInterval(devicefetch, process.env.DEVICE_CHECK_INTERVAL * 60 * 1000);
 });
 
-// Function to fetch disabled accounts in the last 4 days
-const fetchDisabledAccounts = () => {
-  const connection = connectToDatabase();
-
-  connection.connect((err) => {
-    if (err) {
-      logMessage(`Error connecting to the database: ${err}`);
-      return;
-    }
-
-    const disabledAccountsQuery = `
-      SELECT *
-      FROM account
-      WHERE last_disabled > UNIX_TIMESTAMP() - 345600
-    `;
-
-    connection.query(disabledAccountsQuery, (error, results) => {
-      if (error) {
-        logMessage(`Error executing the disabledAccountsQuery: ${error}`);
-        connection.end(); // Close the connection even in case of error
-        return;
-      }
-
-      const disabledAccountsCount = results.length;
-      const embed = new MessageEmbed()
-        .setTitle("DISABLED ACCOUNTS")
-        .setColor("#ff0000")
-        .setDescription(`There are ${disabledAccountsCount} accounts disabled.`)
-        .setTimestamp();
-
-      const channel = client.channels.cache.get(process.env.CHANNEL_ID);
-      if (channel) {
-        channel
-          .send(embed)
-          .then(() => {
-            logMessage("Disabled accounts query results sent successfully.");
-            connection.end(); // Close the connection after success
-          })
-          .catch((error) => {
-            logMessage(
-              `Error sending the disabled accounts query results: ${error}`
-            );
-            connection.end(); // Close the connection even in case of error
-          });
-      } else {
-        logMessage("Specified channel not found.");
-        connection.end(); // Close the connection if the channel is not found
-      }
-    });
-  });
-};
 
 client.on("message", (message) => {
   if (message.content === "$disabled") {
