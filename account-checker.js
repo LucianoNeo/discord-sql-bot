@@ -386,7 +386,7 @@ const sendAccountStatusMessage = () => {
                                               );
                                               embed.addField(
                                                 "🔒 Total Auth Banned Accounts",
-                                                `${usable_30_plus}/${total_level_30_plus}`,
+                                                total_auth_banned_accounts.toString(),
                                                 true
                                               );
                                               embed.addField(
