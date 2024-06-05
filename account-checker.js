@@ -100,12 +100,13 @@ const sendMessage = () => {
     }
 
     // Perform database queries
-    const noTokenQuery = `SELECT COUNT(*) FROM account WHERE refresh_token = ''`; // Adjust the query as necessary
+    const noTokenQuery = `SELECT COUNT(*) FROM account WHERE refresh_token = '' AND auth_banned = 0 AND not invalid`; // Adjust the query as necessary
     const readyToUseQuery = `SELECT
                                 SUM(
                                     CASE
                                     WHEN
                                         not banned
+                                        AND auth_banned = 0
                                         AND not invalid
                                         AND warn_expiration < UNIX_TIMESTAMP()
                                         AND not suspended
@@ -151,19 +152,19 @@ const sendMessage = () => {
         // Check for noTokensAccs
         if (noTokensAccsCount > 0) {
           embed.setDescription(
-            `🔴 There are ${noTokensAccsCount} accounts without token\n`
+            `🔴  Valid accounts without token\n ${noTokensAccsCount}`
           );
         } else {
-          embed.setDescription("🟢 No accounts without token.\n");
+          embed.setDescription("🟢 No valid accounts without token.\n");
         }
         if (readyToUseAccsCount > 5) {
           embed.addField(
-            "🟢 Ready to Use Accounts",
+            "🟢 LEVEL 30+ Ready to Use Accounts",
             `${readyToUseAccsCount} accounts are ready to use`
           );
         } else {
           embed.addField(
-            "🔴 Ready to Use Accounts (WARNING)",
+            "🔴 LEVEL 30+ Ready to Use Accounts (WARNING)",
             `${readyToUseAccsCount} accounts are ready to use`
           );
         }
