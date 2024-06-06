@@ -102,10 +102,22 @@ const sendAccountStatusMessage = () => {
 
     // SQL queries to retrieve the required data
     const queryWithoutToken = `
-      SELECT SUM(CASE WHEN refresh_token = '' AND auth_banned = 0 THEN 1 ELSE 0 END) AS without_token FROM account;
+      SELECT SUM(CASE WHEN refresh_token = '' 
+      AND auth_banned = 0
+      AND NOT banned 
+      AND NOT invalid 
+      AND warn_expiration < UNIX_TIMESTAMP()
+      AND NOT suspended 
+      THEN 1 ELSE 0 END) AS without_token FROM account;
     `;
     const queryWithToken = `
-      SELECT SUM(CASE WHEN refresh_token != '' THEN 1 ELSE 0 END) AS with_token FROM account;
+      SELECT SUM(CASE WHEN refresh_token != '' 
+      AND auth_banned = 0
+      AND NOT banned 
+      AND NOT invalid 
+      AND warn_expiration < UNIX_TIMESTAMP()
+      AND NOT suspended 
+      THEN 1 ELSE 0 END) AS with_token FROM account;
     `;
     const queryTotalSuccessfulRefreshTokensToday = `
       SELECT COUNT(*) AS total_successful_refresh_tokens_today 
@@ -391,7 +403,10 @@ const sendAccountStatusMessage = () => {
                                               );
                                               embed.addField(
                                                 "⏰ Disabled Accounts",
-                                                `${total_level_30_plus - usable_30_plus}`,
+                                                `${
+                                                  total_level_30_plus -
+                                                  usable_30_plus
+                                                }`,
                                                 true
                                               );
 
@@ -458,7 +473,6 @@ client.once("ready", () => {
   // Set the interval for sending devices messages
   setInterval(devicefetch, process.env.DEVICE_CHECK_INTERVAL * 60 * 1000);
 });
-
 
 client.on("message", (message) => {
   if (message.content === "$disabled") {
