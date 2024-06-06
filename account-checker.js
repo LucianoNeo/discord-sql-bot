@@ -365,7 +365,7 @@ const sendAccountStatusMessage = () => {
                                                 true
                                               );
                                               embed.addField(
-                                                "📉 Total Level 0 Accounts",
+                                                "📉 Total Level 0-29 Accounts",
                                                 total_level_0_to_29.toString(),
                                                 true
                                               );
