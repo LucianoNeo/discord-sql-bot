@@ -50,7 +50,7 @@ This bot periodically checks Dragonite's database for accounts without a refresh
   CHANNEL_ID=account_discordChannelId
   DEVICE_CHANNEL_ID=device_DiscordChannelId
   ROTOM_ENDPOINT=rotom_endpoint
-  MIN_REUSE_HOURS=169
+  MIN_REUSE_HOURS=theSameOfYourDRAGONITEconfig
   ```
   Replace your_mysql_host, your_mysql_user, your_mysql_password, your_mysql_database, your_mysql_port, your_discord_bot_token, and your_discord_channel_id with your actual MySQL database and Discord bot information. CHECK_INTERVAL is the interval in minutes for the bot to perform the database check.
 
