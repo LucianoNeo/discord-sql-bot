@@ -1,0 +1,12 @@
+[06/07/2024 10:21:11] Bot is online!
+[06/07/2024 10:21:14] Error executing the query for usable accounts (30+): Error: Unknown column 'undefined' in 'field list'
+[06/07/2024 10:22:16] Bot is online!
+[06/07/2024 10:22:16] Error connecting to the database: Error: getaddrinfo ENOTFOUND http://154.12.232.78
+[06/07/2024 10:22:53] Bot is online!
+[06/07/2024 10:22:54] Error executing the query for usable accounts (30+): Error: Unknown column 'undefined' in 'field list'
+[06/07/2024 10:24:08] Bot is online!
+[06/07/2024 10:24:10] Account status message sent successfully.
+[06/07/2024 10:26:08] Bot is online!
+[06/07/2024 10:26:11] Account status message sent successfully.
+[06/07/2024 10:27:42] Bot is online!
+[06/07/2024 10:27:44] Account status message sent successfully.

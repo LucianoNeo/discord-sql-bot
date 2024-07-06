@@ -174,6 +174,16 @@ const sendAccountStatusMessage = () => {
       SELECT COUNT(*) AS total_auth_banned_accounts FROM account WHERE auth_banned != 0;
     `;
 
+    const queryTotalDisabled = `
+    SELECT 
+    COUNT(*) AS total_disabled_accounts
+      FROM 
+          account
+      WHERE 
+          (consecutive_disable_count <= 1 AND UNIX_TIMESTAMP() - 3*86400 < last_disabled) OR
+          (consecutive_disable_count >= 2 AND UNIX_TIMESTAMP() - 30*86400 < last_disabled);
+    `;
+
     // Execute the SQL queries
     connection.query(
       queryWithoutToken,
@@ -311,131 +321,162 @@ const sendAccountStatusMessage = () => {
                                                 return;
                                               }
 
-                                              // Extract relevant information from the query results
-                                              const { without_token } =
-                                                resultsWithoutToken[0];
-                                              const { with_token } =
-                                                resultsWithToken[0];
-                                              const {
-                                                total_successful_refresh_tokens_today,
-                                              } =
-                                                resultsTotalSuccessfulRefreshTokensToday[0];
-                                              const { usable_30_plus } =
-                                                resultsUsable30Plus[0];
-                                              const { usable_0_to_29 } =
-                                                resultsUsable0to29[0];
-                                              const { total_level_30_plus } =
-                                                resultsTotalLevel30Plus[0];
-                                              const { total_level_0_to_29 } =
-                                                resultsTotalLevel0to29[0];
-                                              const { total_banned_accounts } =
-                                                resultsTotalBannedAccounts[0];
-                                              const { total_invalid_accounts } =
-                                                resultsTotalInvalidAccounts[0];
-                                              const { total_warned_accounts } =
-                                                resultsTotalWarnedAccounts[0];
-                                              const {
-                                                total_auth_banned_accounts,
-                                              } =
-                                                resultsTotalAuthBannedAccounts[0];
-
-                                              // Create an embed for the message
-                                              const embed = new MessageEmbed()
-                                                .setTitle("📊 Accounts Status")
-                                                .setColor("#00FF00") // Green color for positive status
-                                                .setTimestamp();
-
-                                              // Add fields to the embed with accurate values
-                                              embed.addField(
-                                                "🔴 Valid Accounts without Token",
-                                                without_token.toString(),
-                                                true
-                                              );
-                                              embed.addField(
-                                                "🟢 Valid Accounts with Token",
-                                                with_token.toString(),
-                                                true
-                                              );
-                                              embed.addField(
-                                                "🔄 Total Successful Refresh-Tokens Today",
-                                                total_successful_refresh_tokens_today.toString(),
-                                                true
-                                              );
-                                              embed.addField(
-                                                "🟢 Ready to Use Accounts (Level 30+)",
-                                                `${usable_30_plus}/${total_level_30_plus}`,
-                                                true
-                                              );
-                                              embed.addField(
-                                                "🟢 Ready to Use Accounts (Level 0-29)",
-                                                `${usable_0_to_29}/${total_level_0_to_29}`,
-                                                true
-                                              );
-                                              embed.addField(
-                                                "📈 Total Level 30+ Accounts",
-                                                total_level_30_plus.toString(),
-                                                true
-                                              );
-                                              embed.addField(
-                                                "📉 Total Level 0-29 Accounts",
-                                                total_level_0_to_29.toString(),
-                                                true
-                                              );
-                                              embed.addField(
-                                                "🚫 Total Banned Accounts",
-                                                total_banned_accounts.toString(),
-                                                true
-                                              );
-                                              embed.addField(
-                                                "❌ Total Invalid Accounts",
-                                                total_invalid_accounts.toString(),
-                                                true
-                                              );
-                                              embed.addField(
-                                                "⚠️ Total Accounts with Warnings",
-                                                total_warned_accounts.toString(),
-                                                true
-                                              );
-                                              embed.addField(
-                                                "🔒 Total Auth Banned Accounts",
-                                                total_auth_banned_accounts.toString(),
-                                                true
-                                              );
-                                              embed.addField(
-                                                "⏰ Disabled Accounts",
-                                                `${
-                                                  total_level_30_plus -
-                                                  usable_30_plus
-                                                }`,
-                                                true
-                                              );
-
-                                              // Send message to the specific channel
-                                              const channel =
-                                                client.channels.cache.get(
-                                                  process.env.CHANNEL_ID
-                                                );
-                                              if (channel) {
-                                                channel
-                                                  .send(embed)
-                                                  .then(() => {
+                                              connection.query(
+                                                queryTotalDisabled,
+                                                (
+                                                  errorTotalDisabledAccounts,
+                                                  resultsTotalDisabledAccounts
+                                                ) => {
+                                                  if (
+                                                    errorTotalDisabledAccounts
+                                                  ) {
                                                     logMessage(
-                                                      "Account status message sent successfully."
-                                                    );
-                                                    connection.end(); // Close the connection after success
-                                                  })
-                                                  .catch((error) => {
-                                                    logMessage(
-                                                      `Error sending the account status message: ${error}`
+                                                      `Error executing the query for total disabled accounts: ${errorTotalAuthBannedAccounts}`
                                                     );
                                                     connection.end(); // Close the connection even in case of error
-                                                  });
-                                              } else {
-                                                logMessage(
-                                                  "Specified channel not found."
-                                                );
-                                                connection.end(); // Close the connection if the channel is not found
-                                              }
+                                                    return;
+                                                  }
+
+                                                  // Extract relevant information from the query results
+                                                  const { without_token } =
+                                                    resultsWithoutToken[0];
+                                                  const { with_token } =
+                                                    resultsWithToken[0];
+                                                  const {
+                                                    total_successful_refresh_tokens_today,
+                                                  } =
+                                                    resultsTotalSuccessfulRefreshTokensToday[0];
+                                                  const { usable_30_plus } =
+                                                    resultsUsable30Plus[0];
+                                                  const { usable_0_to_29 } =
+                                                    resultsUsable0to29[0];
+                                                  const {
+                                                    total_level_30_plus,
+                                                  } =
+                                                    resultsTotalLevel30Plus[0];
+                                                  const {
+                                                    total_level_0_to_29,
+                                                  } = resultsTotalLevel0to29[0];
+                                                  const {
+                                                    total_banned_accounts,
+                                                  } =
+                                                    resultsTotalBannedAccounts[0];
+                                                  const {
+                                                    total_invalid_accounts,
+                                                  } =
+                                                    resultsTotalInvalidAccounts[0];
+                                                  const {
+                                                    total_warned_accounts,
+                                                  } =
+                                                    resultsTotalWarnedAccounts[0];
+                                                  const {
+                                                    total_auth_banned_accounts,
+                                                  } =
+                                                    resultsTotalAuthBannedAccounts[0];
+
+                                                  const {
+                                                    total_disabled_accounts,
+                                                  } =
+                                                    resultsTotalDisabledAccounts[0];
+                                                  // Create an embed for the message
+                                                  const embed =
+                                                    new MessageEmbed()
+                                                      .setTitle(
+                                                        "📊 Accounts Status"
+                                                      )
+                                                      .setColor("#00FF00") // Green color for positive status
+                                                      .setTimestamp();
+
+                                                  // Add fields to the embed with accurate values
+                                                  embed.addField(
+                                                    "🔴 Valid Accounts without Token",
+                                                    without_token.toString(),
+                                                    true
+                                                  );
+                                                  embed.addField(
+                                                    "🟢 Valid Accounts with Token",
+                                                    with_token.toString(),
+                                                    true
+                                                  );
+                                                  embed.addField(
+                                                    "🔄 Total Successful Refresh-Tokens Today",
+                                                    total_successful_refresh_tokens_today.toString(),
+                                                    true
+                                                  );
+                                                  embed.addField(
+                                                    "🟢 Ready to Use Accounts (Level 30+)",
+                                                    `${usable_30_plus}/${total_level_30_plus}`,
+                                                    true
+                                                  );
+                                                  embed.addField(
+                                                    "🟢 Ready to Use Accounts (Level 0-29)",
+                                                    `${usable_0_to_29}/${total_level_0_to_29}`,
+                                                    true
+                                                  );
+                                                  embed.addField(
+                                                    "📈 Total Level 30+ Accounts",
+                                                    total_level_30_plus.toString(),
+                                                    true
+                                                  );
+                                                  embed.addField(
+                                                    "📉 Total Level 0-29 Accounts",
+                                                    total_level_0_to_29.toString(),
+                                                    true
+                                                  );
+                                                  embed.addField(
+                                                    "🚫 Total Banned Accounts",
+                                                    total_banned_accounts.toString(),
+                                                    true
+                                                  );
+                                                  embed.addField(
+                                                    "❌ Total Invalid Accounts",
+                                                    total_invalid_accounts.toString(),
+                                                    true
+                                                  );
+                                                  embed.addField(
+                                                    "⚠️ Total Accounts with Warnings",
+                                                    total_warned_accounts.toString(),
+                                                    true
+                                                  );
+                                                  embed.addField(
+                                                    "🔒 Total Auth Banned Accounts",
+                                                    total_auth_banned_accounts.toString(),
+                                                    true
+                                                  );
+                                                  embed.addField(
+                                                    "⏰ Disabled Accounts",
+                                                    `${total_disabled_accounts}`,
+                                                    true
+                                                  );
+
+                                                  // Send message to the specific channel
+                                                  const channel =
+                                                    client.channels.cache.get(
+                                                      process.env.CHANNEL_ID
+                                                    );
+                                                  if (channel) {
+                                                    channel
+                                                      .send(embed)
+                                                      .then(() => {
+                                                        logMessage(
+                                                          "Account status message sent successfully."
+                                                        );
+                                                        connection.end(); // Close the connection after success
+                                                      })
+                                                      .catch((error) => {
+                                                        logMessage(
+                                                          `Error sending the account status message: ${error}`
+                                                        );
+                                                        connection.end(); // Close the connection even in case of error
+                                                      });
+                                                  } else {
+                                                    logMessage(
+                                                      "Specified channel not found."
+                                                    );
+                                                    connection.end(); // Close the connection if the channel is not found
+                                                  }
+                                                }
+                                              );
                                             }
                                           );
                                         }
