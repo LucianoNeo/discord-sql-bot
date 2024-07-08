@@ -132,7 +132,7 @@ const sendAccountStatusMessage = () => {
             AND NOT invalid 
             AND warn_expiration < UNIX_TIMESTAMP()
             AND NOT suspended 
-            AND ((consecutive_disable_count <= 1 AND UNIX_TIMESTAMP() - 4*86400 > COALESCE(last_disabled, 0))
+            AND ((consecutive_disable_count <= 1 AND UNIX_TIMESTAMP() - 3*86400 > COALESCE(last_disabled, 0))
                   OR (consecutive_disable_count >= 2 AND UNIX_TIMESTAMP() - 30*86400 > COALESCE(last_disabled, 0)))
             AND (last_selected IS NULL OR last_selected < UNIX_TIMESTAMP() - ${process.env.MIN_REUSE_HOURS}*3600)
             AND auth_banned = 0
@@ -147,7 +147,7 @@ const sendAccountStatusMessage = () => {
             AND NOT invalid 
             AND warn_expiration < UNIX_TIMESTAMP()
             AND NOT suspended 
-            AND ((consecutive_disable_count <= 1 AND UNIX_TIMESTAMP() - 4*86400 > COALESCE(last_disabled, 0))
+            AND ((consecutive_disable_count <= 1 AND UNIX_TIMESTAMP() - 3*86400 > COALESCE(last_disabled, 0))
                   OR (consecutive_disable_count >= 2 AND UNIX_TIMESTAMP() - 30*86400 > COALESCE(last_disabled, 0)))
             AND (last_selected IS NULL OR last_selected < UNIX_TIMESTAMP() - ${process.env.MIN_REUSE_HOURS}*3600)
             AND auth_banned = 0
